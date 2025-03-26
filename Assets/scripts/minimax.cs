@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using System.IO;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.UIElements;
 
 public class Ai
 {
@@ -13,7 +14,7 @@ public class Ai
     Stopwatch stopwatch = new Stopwatch();
     private Main main;
     List<(int,int)> validMoves;
-    (List<(int, int)>,List<(int, int)>) toDoMoves;
+    List<(int, int)> toDoMoves;
     (int,int) clickedCoords = (0,0);
 
     Dictionary<string,int> pieceCounts = new Dictionary<string, int>
@@ -114,6 +115,8 @@ public class Ai
     Dictionary<string, int[,]> pieceSquareTables = new Dictionary<string, int[,]>();
     ulong boardHash;
     Zobrist zobrist = new Zobrist();
+
+    HashSet<ulong> killerMove = new HashSet<ulong>();
 
     public Ai(Main caller)
     {
@@ -301,15 +304,11 @@ public class Ai
                     
                 }
                 
-                // first captures then other moves
-                toDoMoves.Item2.AddRange(toDoMoves.Item1);
 
-                // if (parentColour == 'b')
-                // {
-                //     toDoMoves.Item2 = toDoMoves.Item2.OrderByDescending(move => EvaluateMove(move, (y,x), depth, pieceName, board)).ToList();
-                // }
+                toDoMoves = toDoMoves.OrderByDescending(move => EvaluateMove(move, (y,x), board, boardHash, pieceName)).ToList();
+                
 
-                foreach ((int,int) move in toDoMoves.Item2)
+                foreach ((int,int) move in toDoMoves)
                 {
                     // gettin all the info and making the move
                     string capturedPiecename = board[move.Item1, move.Item2];
@@ -371,7 +370,6 @@ public class Ai
                     }
                     
 
-                    
 
                     // alpha beta pruning
                     if (parentColour == 'b')
@@ -385,7 +383,7 @@ public class Ai
 
                     if (beta <= alpha)
                     {
-                        
+                        killerMove.Add(boardHash);
                         if (!transpositionsDic.ContainsKey(boardHash))
                         {
                             transpositionsDic.Add(boardHash, (score, depth));
@@ -409,14 +407,26 @@ public class Ai
     // 372620.368464687
 
 
-    int EvaluateMove((int,int) move, (int,int) movedFrom, int depth, string pieceName, string[,] board)
+    int EvaluateMove((int,int) move, (int,int) movedFrom, string[,] board, ulong boardHash, string pieceName)
     {
+        int moveScore = 0;
         if (!string.IsNullOrEmpty(board[move.Item1, move.Item2]))
         {
-            return (piecesWeight[pieceName[1..]] - piecesWeight[board[move.Item1, move.Item2][1..]]);
+            moveScore += piecesWeight[board[move.Item1, move.Item2][1..]] - piecesWeight[pieceName[1..]];
+
+        }
+        if (killerMove.Contains(boardHash))
+        {
+            moveScore += 100;
+        }
+        int tableY = (pieceName[0] == 'b') ? (7 - move.Item1) : move.Item1; // flip y coord for black
+        if (pieceSquareTables.TryGetValue(pieceName[1..], out int[,] squareTable))
+        {
+            moveScore += squareTable[tableY, move.Item2];
         }
 
-        return 0;
+
+        return moveScore == 0 ? -1000 : moveScore;
     }
 
     int Evaluation()
@@ -433,6 +443,7 @@ public class Ai
             
 
         }
+        
         
         return scoreNow;//lalalal blabla blabla hihi haha enter
     }

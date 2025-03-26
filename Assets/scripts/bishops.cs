@@ -37,10 +37,9 @@ public class Bishop
     );
     }
 
-    public (List<(int, int)>,List<(int, int)>) getValidMoves((int, int) startPos, string parentColour, string[,] board)
+    public List<(int, int)> getValidMoves((int, int) startPos, string parentColour, string[,] board)
     {
         List<(int,int)> validMoves = new List<(int, int)>();
-        List<(int,int)> capturedMoves = new List<(int, int)>();
         foreach ((int dx, int dy) in directions)
         {
             for (int i = 1; i < 8; i++)
@@ -60,7 +59,7 @@ public class Bishop
                 else
                 {
                     if (piece[0] == (parentColour == "white" ? 'b' : 'w'))
-                        capturedMoves.Add((newX, newY));
+                        validMoves.Add((newX, newY));
                         
 
                     break; 
@@ -68,7 +67,7 @@ public class Bishop
             }
         }
 
-        return (validMoves, capturedMoves);
+        return validMoves;
     }
 
 

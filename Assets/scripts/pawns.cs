@@ -34,12 +34,11 @@ public class Pawn
     );
     }
 
-     public (List<(int, int)>,List<(int, int)>) getValidMoves((int, int) startPos, string parentColour, string[,] board)
+    public List<(int, int)> getValidMoves((int, int) startPos, string parentColour, string[,] board)
     {
         bool isAtStart = parentColour == "white" ? startPos.Item1 == 6 ? true : false : startPos.Item1 == 1 ? true : false;
         int dir = parentColour == "white" ? -1 : 1;
         List<(int,int)> validMoves = new List<(int, int)>();
-        List<(int,int)> capturedMoves = new List<(int, int)>();
         if (0 <= startPos.Item1 + dir && startPos.Item1 + dir < 8)
         {
             if (0 <= startPos.Item2 && startPos.Item2 < 8)
@@ -63,7 +62,7 @@ public class Pawn
                         {
                             if (board[startPos.Item1 + dir, startPos.Item2 + i][0] == (parentColour == "white" ? 'b' : 'w'))
                             {
-                                capturedMoves.Add((startPos.Item1 + dir, startPos.Item2 + i));
+                                validMoves.Add((startPos.Item1 + dir, startPos.Item2 + i));
                             }
                         }
                     }
@@ -73,7 +72,7 @@ public class Pawn
         
         
 
-        return (validMoves, capturedMoves);
+        return validMoves;
     }
 
 

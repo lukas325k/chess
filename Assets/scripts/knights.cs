@@ -35,10 +35,9 @@ public class Knight
     );
     }
 
-    public (List<(int, int)>,List<(int, int)>) getValidMoves((int, int) startPos, string parentColour, string[,] board)
+    public List<(int, int)> getValidMoves((int, int) startPos, string parentColour, string[,] board)
     {
         List<(int,int)> validMoves = new List<(int, int)>();
-        List<(int,int)> capturedMoves = new List<(int, int)>();
         foreach ((int,int) dir in directions)
         {
             int yPos = startPos.Item1 + dir.Item1;
@@ -48,13 +47,13 @@ public class Knight
                 if (board[yPos,xPos] == null)
                     validMoves.Add((yPos,xPos));
                 else if (board[yPos,xPos][0] == (parentColour == "white" ? 'b' : 'w'))
-                    capturedMoves.Add((yPos,xPos));
+                    validMoves.Add((yPos,xPos));
                     
                 
             }
         }
 
-        return (validMoves, capturedMoves);
+        return validMoves;
     }
 
 

@@ -101,42 +101,42 @@ public class Main : MonoBehaviour
             switch (clickedName)
             {
                 case "wPawn":
-                    if (pawnClass.getValidMoves(clickedCoords, "white", board).Item1.Contains(unclickedCoords) || pawnClass.getValidMoves(clickedCoords, "white", board).Item2.Contains(unclickedCoords))
+                    if (pawnClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
                     {
                         board[clickedCoords.Item1, clickedCoords.Item2] = null;
                         board[unclickedCoords.Item1, unclickedCoords.Item2] = "wPawn";
                     }
                     break;
                 case "wKnight":
-                    if (knightClass.getValidMoves(clickedCoords, "white", board).Item1.Contains(unclickedCoords) || knightClass.getValidMoves(clickedCoords, "white", board).Item2.Contains(unclickedCoords))
+                    if (knightClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
                     {
                         board[clickedCoords.Item1, clickedCoords.Item2] = null;
                         board[unclickedCoords.Item1, unclickedCoords.Item2] = "wKnight";
                     }
                     break;
                 case "wRook":
-                    if (rookClass.getValidMoves(clickedCoords, "white", board).Item1.Contains(unclickedCoords) || rookClass.getValidMoves(clickedCoords, "white", board).Item2.Contains(unclickedCoords))
+                    if (rookClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
                     {
                         board[clickedCoords.Item1, clickedCoords.Item2] = null;
                         board[unclickedCoords.Item1, unclickedCoords.Item2] = "wRook";
                     }
                     break;
                 case "wBishop":
-                    if (bishopClass.getValidMoves(clickedCoords, "white", board).Item1.Contains(unclickedCoords) || bishopClass.getValidMoves(clickedCoords, "white", board).Item2.Contains(unclickedCoords))
+                    if (bishopClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
                     {
                         board[clickedCoords.Item1, clickedCoords.Item2] = null;
                         board[unclickedCoords.Item1, unclickedCoords.Item2] = "wBishop";
                     }
                     break;
                 case "wQueen":
-                    if (queenClass.getValidMoves(clickedCoords, "white", board).Item1.Contains(unclickedCoords) || queenClass.getValidMoves(clickedCoords, "white", board).Item2.Contains(unclickedCoords))
+                    if (queenClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
                     {
                         board[clickedCoords.Item1, clickedCoords.Item2] = null;
                         board[unclickedCoords.Item1, unclickedCoords.Item2] = "wQueen";
                     }
                     break;
                 case "wKing":
-                    if (kingClass.getValidMoves(clickedCoords, "white", board).Item1.Contains(unclickedCoords) || kingClass.getValidMoves(clickedCoords, "white", board).Item2.Contains(unclickedCoords))
+                    if (kingClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
                     {
                         board[clickedCoords.Item1, clickedCoords.Item2] = null;
                         board[unclickedCoords.Item1, unclickedCoords.Item2] = "wKing";

@@ -34,11 +34,10 @@ public class King
     );
     }
 
-    public (List<(int, int)>,List<(int, int)>) getValidMoves((int, int) startPos, string parentColour, string[,] board)
+    public List<(int, int)> getValidMoves((int, int) startPos, string parentColour, string[,] board)
     {
         int i = 1;
         List<(int,int)> validMoves = new List<(int, int)>();
-        List<(int,int)> capturedMoves = new List<(int, int)>();
         foreach ((int,int) dir in directions)
         {
             if (0 <= startPos.Item1 + dir.Item1*i && startPos.Item1 + dir.Item1*i < 8)
@@ -51,13 +50,13 @@ public class King
                     }
                     else if (board[startPos.Item1 + dir.Item1*i, startPos.Item2 + dir.Item2*i][0] == (parentColour == "white" ? 'b' : 'w'))
                     {
-                        capturedMoves.Add((startPos.Item1 + dir.Item1*i, startPos.Item2 + dir.Item2*i));
+                        validMoves.Add((startPos.Item1 + dir.Item1*i, startPos.Item2 + dir.Item2*i));
                     }
                 }
             }
         }
 
-        return (validMoves, capturedMoves);
+        return validMoves;
     }
 
 
