@@ -59,7 +59,7 @@ public class Ai
   
     };
 
-    Dictionary<(string,(int,int), int), ulong> zobristDic ;
+    Dictionary<(string,(int,int)), ulong> zobristDic ;
 
     int[,] pawnSquareTable =    {{0,  0,  0,  0,  0,  0,  0,  0},
                                 {50, 50, 50, 50, 50, 50, 50, 50},
@@ -77,24 +77,63 @@ public class Ai
                                 {-30,  5, 10, 15, 15, 10,  5,-30},
                                 {-40,-20,  0,  5,  5,  0,-20,-40},
                                 {-50,-40,-30,-30,-30,-30,-40,-50}};
-    HashSet<(int,int, int,string)> killerMoves = new HashSet<(int, int, int, string)>();
-
-    Dictionary<ulong, List<int>> transpositionsDic = new Dictionary<ulong, List<int>>();
-
+    int[,] bishopSquareTable = {{-20,-10,-10,-10,-10,-10,-10,-20},
+                                {-10,  0,  0,  0,  0,  0,  0,-10},
+                                {-10,  0,  5, 10, 10,  5,  0,-10},
+                                {-10,  5,  5, 10, 10,  5,  5,-10},
+                                {-10,  0, 10, 10, 10, 10,  0,-10},
+                                {-10, 10, 10, 10, 10, 10, 10,-10},
+                                {-10,  5,  0,  0,  0,  0,  5,-10},
+                                {-20,-10,-10,-10,-10,-10,-10,-20}};
+    int[,] rookSquareTable = {{  0,  0,  0,  0,  0,  0,  0,  0},
+                            {  5, 10, 10, 10, 10, 10, 10,  5},
+                            { -5,  0,  0,  0,  0,  0,  0, -5},
+                            { -5,  0,  0,  0,  0,  0,  0, -5},
+                            { -5,  0,  0,  0,  0,  0,  0, -5},
+                            { -5,  0,  0,  0,  0,  0,  0, -5},
+                            { -5,  0,  0,  0,  0,  0,  0, -5},
+                            {  0,  0,  0,  5,  5,  0,  0,  0}};
+    int[,] queenSquareTable = {{-20,-10,-10, -5, -5,-10,-10,-20},
+                                {-10,  0,  0,  0,  0,  0,  0,-10},
+                                {-10,  0,  5,  5,  5,  5,  0,-10},
+                                {-5,  0,  5,  5,  5,  5,  0, -5},
+                                {0,  0,  5,  5,  5,  5,  0, -5},
+                                {-10,  5,  5,  5,  5,  5,  0,-10},
+                                {-10,  0,  5,  0,  0,  0,  0,-10},
+                                {-20,-10,-10, -5, -5,-10,-10,-20}};
+    int[,] kingSquareTable = {{-30,-40,-40,-50,-50,-40,-40,-30},
+                                {-30,-40,-40,-50,-50,-40,-40,-30},
+                                {-30,-40,-40,-50,-50,-40,-40,-30},
+                                {-30,-40,-40,-50,-50,-40,-40,-30},
+                                {-20,-30,-30,-40,-40,-30,-30,-20},
+                                {-10,-20,-20,-20,-20,-20,-20,-10},
+                                { 20, 20,  0,  0,  0,  0, 20, 20},
+                                { 20, 30, 10,  0,  0, 10, 30, 20}};
+    Dictionary<ulong, (List<int>, int)> transpositionsDic = new Dictionary<ulong, (List<int>, int)>();
+    
+    Dictionary<string, int[,]> pieceSquareTables = new Dictionary<string, int[,]>();
     ulong boardHash;
     Zobrist zobrist = new Zobrist();
-    private StreamWriter writer;
+
     public Ai(Main caller)
     {
         
         zobristDic = zobrist.ZobristHashing();
-        writer = new StreamWriter("output.txt", true); // Open file in append mode
         
         int score;
         int indexOfBestScore;
         
         List<int> scores = new List<int>();
         this.main = caller;
+        pieceSquareTables = new Dictionary<string, int[,]>
+        {
+            { "Pawn", pawnSquareTable },
+            { "Knight", knightSquareTable },
+            { "Bishop", bishopSquareTable },
+            { "Rook", rookSquareTable },
+            { "Queen", queenSquareTable },
+            { "King", kingSquareTable }
+        };
 
         SetCounts(main.board);
 
@@ -105,11 +144,12 @@ public class Ai
         stopwatch.Start();
 
         const int startDepth = 1;
-        const int maxDepth = 3;
+        const int maxDepth = 20;
         const int step = 1;
         const float maxTime = 2;
         int depth = 0;
 
+        // iterative deepining logic
         for (int i = 2; i <= maxDepth; i += step)
         {
             if (stopwatch.Elapsed.TotalSeconds < maxTime)
@@ -136,6 +176,7 @@ public class Ai
         clickedCoords = (scoresPos[indexOfBestScore].Item1, scoresPos[indexOfBestScore].Item2);
         (int,int) unclickedCoords = scoresPos[indexOfBestScore].Item4;
     
+        // all the console writing
         for (int i = 0;  i < scoresPos.Count(); i ++)
         {
             UnityEngine.Debug.Log(scoresPos[i]);
@@ -210,22 +251,13 @@ public class Ai
             }
         }
 
-        for (int i = 0; i < board.GetLength(0); i++)
-        {
-            for (int j = 0; j < board.GetLength(1); j++)
-            {
-                writer.Write(board[i, j] + " "); // Write element to file
-            }
-            writer.WriteLine(); // Move to next line
-        }
-        writer.WriteLine(boardHash);
-        writer.WriteLine(depth);
-        
-        
-
         if (transpositionsDic.ContainsKey(boardHash) && depth > 1)
         {
-            return transpositionsDic[boardHash];
+            (List<int>, int) dicInfo = transpositionsDic[boardHash];
+            if (dicInfo.Item2 <= depth)
+            {
+                return dicInfo.Item1;
+            }
         }
         
         foreach ((int y, int x) in piecesCoords)
@@ -269,8 +301,9 @@ public class Ai
                     
                 }
                 
+                // first captures then other moves
                 toDoMoves.Item2.AddRange(toDoMoves.Item1);
-                // ahoooooooooooooooj
+
                 // if (parentColour == 'b')
                 // {
                 //     toDoMoves.Item2 = toDoMoves.Item2.OrderByDescending(move => EvaluateMove(move, (y,x), depth, pieceName, board)).ToList();
@@ -278,46 +311,31 @@ public class Ai
 
                 foreach ((int,int) move in toDoMoves.Item2)
                 {
+                    // gettin all the info and making the move
                     string capturedPiecename = board[move.Item1, move.Item2];
                     board[move.Item1, move.Item2] = pieceName;
                     board[y,x] = null;
                     
-                    switch(pieceName)
+                    // square tables
+                    int multiplier = (pieceName[0] == 'b') ? 1 : -1; 
+                    int tableY = (pieceName[0] == 'b') ? (7 - move.Item1) : move.Item1; // flip y coord for black
+                    if (pieceSquareTables.TryGetValue(pieceName[1..], out int[,] squareTable))
                     {
-                        case "bPawn":
-                        {
-                            piecePositionsValue[pieceName] += pawnSquareTable[7-move.Item1,move.Item2];
-                            break;
-                        }
-                        case "wPawn":
-                        {
-                            piecePositionsValue[pieceName] -= pawnSquareTable[move.Item1,move.Item2];
-                            break;
-                        }
-                        case "bKnight":
-                        {
-                            piecePositionsValue[pieceName] += knightSquareTable[7-move.Item1,move.Item2];
-                            break;
-                        }
-                        case "wKnight":
-                        {
-                            piecePositionsValue[pieceName] -= knightSquareTable[move.Item1,move.Item2];
-                            break;
-                        }
-                        
+                        piecePositionsValue[pieceName] += multiplier * squareTable[tableY, move.Item2];
                     }
 
-                    boardHash ^= zobristDic[(pieceName,(y,x), 1)];
-                    boardHash ^= zobristDic[(pieceName,move, depth)];
+                    //board hasshing
+                    boardHash ^= zobristDic[(pieceName,(y,x))];
+                    boardHash ^= zobristDic[(pieceName,move)];
 
-
+                    // capturing and updating board hash accordingly
                     if (!string.IsNullOrEmpty(capturedPiecename))
                     {
-                        boardHash ^= zobristDic[(capturedPiecename,move, 1)];
+                        boardHash ^= zobristDic[(capturedPiecename,move)];
                         pieceCounts[capturedPiecename] --;
                     }
 
-                    
+                    // main logic
                     if (depth == 1)
                     {
                         score.Add(parentColour == 'b' ? minimax('w', depth+1, maxDepth, board, alpha, beta, new List<(int, int)>(), clickedCoords, boardHash).Min() : minimax('b', depth+1, maxDepth, board, alpha, beta, new List<(int, int)>(), clickedCoords, boardHash).Max());
@@ -332,52 +350,30 @@ public class Ai
                         score.Add(Evaluation());
                     }
 
+                    // undiong capturing, moves and boadr hashes
                     if (!string.IsNullOrEmpty(capturedPiecename))
                     {
-                        boardHash ^= zobristDic[(capturedPiecename,move, 1)];
+                        boardHash ^= zobristDic[(capturedPiecename,move)];
                         pieceCounts[capturedPiecename] ++;
                     }
 
-                    boardHash ^= zobristDic[(pieceName,move, depth)];
-                    boardHash ^= zobristDic[(pieceName,(y,x), 1)];
+                    boardHash ^= zobristDic[(pieceName,move)];
+                    boardHash ^= zobristDic[(pieceName,(y,x))];
                     
-
-                    
-
-                    switch(pieceName[1..])
-                    {
-                        case "Pawn":
-                        {
-                            if (parentColour == 'b')
-                            {
-                                piecePositionsValue[pieceName] -= pawnSquareTable[7-move.Item1,move.Item2];
-                            }
-                            else
-                            {
-                                piecePositionsValue[pieceName] += pawnSquareTable[move.Item1,move.Item2];
-                            }
-                            break;
-                        }
-                        case "Knight":
-                        {
-                            if (parentColour == 'b')
-                            {
-                                piecePositionsValue[pieceName] -= knightSquareTable[7-move.Item1,move.Item2];
-                            }
-                            else
-                            {
-                                piecePositionsValue[pieceName] += knightSquareTable[move.Item1,move.Item2];
-                            }
-                            break;
-                        }
-                        
-                    }
-                    
-
                     board[move.Item1, move.Item2] = capturedPiecename;
                     board[y,x] = pieceName;
 
+                    
 
+                    if (pieceSquareTables.TryGetValue(pieceName[1..], out squareTable))
+                    {
+                        piecePositionsValue[pieceName] -= multiplier * squareTable[tableY, move.Item2];
+                    }
+                    
+
+                    
+
+                    // alpha beta pruning
                     if (parentColour == 'b')
                     {
                         alpha = Math.Max(alpha, score.Max());
@@ -389,12 +385,11 @@ public class Ai
 
                     if (beta <= alpha)
                     {
-                        // killerMoves.Add((move.Item1, move.Item2, depth, pieceName));
+                        
                         if (!transpositionsDic.ContainsKey(boardHash))
                         {
-                            transpositionsDic.Add(boardHash, score);
+                            transpositionsDic.Add(boardHash, (score, depth));
                         }
-                        
                         return score;
                     }
                     
@@ -406,24 +401,19 @@ public class Ai
         
         if (!transpositionsDic.ContainsKey(boardHash))
         {
-            transpositionsDic.Add(boardHash, score);
+            transpositionsDic.Add(boardHash, (score, depth));
         }
-        
-        
         return score;
         
-    }//p[icus jeden ]
+    }// 358948.107287952 
+    // 372620.368464687
 
 
     int EvaluateMove((int,int) move, (int,int) movedFrom, int depth, string pieceName, string[,] board)
     {
-        if (killerMoves.Contains((move.Item1, move.Item2, depth, pieceName)))
+        if (!string.IsNullOrEmpty(board[move.Item1, move.Item2]))
         {
-            return 10000/depth;
-        }
-        else if (!string.IsNullOrEmpty(board[move.Item1, move.Item2]))
-        {
-            return (piecesWeight[board[move.Item1, move.Item2][1..]] - piecesWeight[pieceName[1..]]);
+            return (piecesWeight[pieceName[1..]] - piecesWeight[board[move.Item1, move.Item2][1..]]);
         }
 
         return 0;
@@ -449,7 +439,6 @@ public class Ai
 
     void SetCounts(string[,] board)
     {
-        int depth = 1; 
         for (int y = 0; y<8; y++)
         {
             for (int x = 0; x<8; x++)
@@ -459,7 +448,7 @@ public class Ai
                 {
                     pieceCounts[pieceName]++;
 
-                    boardHash ^= zobristDic[(pieceName, (y,x), depth)];
+                    boardHash ^= zobristDic[(pieceName, (y,x))];
                 }
                 
             }
