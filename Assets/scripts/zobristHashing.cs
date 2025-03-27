@@ -6,7 +6,7 @@ using System.Linq;
 
 public class Zobrist
 {
-    Dictionary<(string,(int,int)), ulong> zobristDic = new Dictionary<(string, (int, int)), ulong>();
+    ulong[,,] zobristTable = new ulong[12, 8, 8];
     List<string> pieces = new List<string>();
     Random random = new Random();
 
@@ -15,9 +15,9 @@ public class Zobrist
         pieces.AddRange(new List<string> {"wPawn", "bPawn", "wKnight", "bKnight", "wRook", "bRook", "wBishop", "bBishop", "wQueen", "bQueen", "wKing", "bKing"}.ToList());
     }
 
-    public Dictionary<(string,(int,int)), ulong> ZobristHashing()
+    public ulong[,,] ZobristHashing()
     {
-        foreach (string piece in  pieces)
+        for (int piece = 0; piece < 12; piece++)
         {
             for(int y = 0; y < 8; y ++)
             {
@@ -25,13 +25,13 @@ public class Zobrist
                 {
 
 
-                    zobristDic.Add((piece,(y,x)), ((ulong)random.Next() << 32) | (ulong)random.Next());
+                    zobristTable[piece, y, x] = ((ulong)random.Next() << 32) | (ulong)random.Next();
 
                 }
             }
             
         }
-        return zobristDic;
+        return zobristTable;
     }
 
 
