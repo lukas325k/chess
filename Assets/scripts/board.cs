@@ -24,10 +24,20 @@ public class Main : MonoBehaviour
     public Texture2D wKingTexture;
     public Texture2D bKingTexture;
 
+    public const byte pawn = 1;
+    public const byte knight = 2;
+    public const byte bishop = 3;
+    public const byte rook = 4;
+    public const byte queen = 5;
+    public const byte king = 6;
+    public const byte white = 8;
+    public const byte black = 16;
+
+
     public float sqareSize = 1.25f;
     public float moveUp = 3.5f;
     public float moveLeft = 3.5f;
-    public string[,] board = new string[8,8];
+    public byte[,] board = new byte[8,8];
 
     public Dictionary<(int,int), GameObject> pawnsDic= new Dictionary<(int, int), GameObject>();
 
@@ -53,11 +63,13 @@ public class Main : MonoBehaviour
 
 
     public List<(int, int)[]> piecesPos = new List<(int, int)[]>();
-    public List<string> piecesName = new List<string>();    
+    public List<byte> piecesName = new List<byte>();    
 
     (int, int) clickedCoords = (0,0);
     (int, int) unclickedCoords = (0,0);
-    string clickedName;
+    byte clickedPieceName;
+    byte clickedPieceInfo;
+    byte clickedPieceColour;
 
     public int evals = 0;
     void Start()
@@ -70,10 +82,24 @@ public class Main : MonoBehaviour
         kingClass = new King(this , 0,0, false, "white");
 
         piecesPos = new List<(int, int)[]> {whitePawnsPos,blackPawnsPos, whiteKnightsPos, blackKnightsPos, whiteRooksPos, blackRooksPos, whiteBishopsPos, blackBishopsPos, whiteQueenPos, blackQueenPos, whiteKingPos, blackKingPos};
-        piecesName.AddRange(new List<string> {"wPawn", "bPawn", "wKnight", "bKnight", "wRook", "bRook", "wBishop", "bBishop", "wQueen", "bQueen", "wKing", "bKing"});
+        piecesName.AddRange(new List<byte> {pawn, pawn, knight, knight, rook, rook, bishop, bishop, queen, queen, king, king});
 
+        for (int i = 0; i < piecesPos.Count(); i ++)
+        {
+            foreach ((int,int) coord in piecesPos[i])
+            {
+                bool isWhite = true;
+                if (i % 2 == 0)
+                {
+                    isWhite = false;
+                }
+                board[coord.Item1, coord.Item2] = (byte) (piecesName[i] | (isWhite ? 0b00010000 : 0b00001000));
+                
+
+            }
+        }
         CreateBoard();
-        PlacePieces();
+        UpdatePieces();
     }
 
 
@@ -83,7 +109,10 @@ public class Main : MonoBehaviour
         {
             clickedCoords = GetClickedCoords(Input.mousePosition.y, Input.mousePosition.x);
             clickedPiece = FindGameObjectBySuffix(clickedCoords.ToString());
-            clickedName = board[clickedCoords.Item1, clickedCoords.Item2];
+            clickedPieceInfo = board[clickedCoords.Item1, clickedCoords.Item2];
+            clickedPieceName=  (byte)(clickedPieceInfo & 0b00000111);
+            clickedPieceColour=  (byte)(clickedPieceInfo & 0b00011000);
+            
             
         }
 
@@ -97,54 +126,56 @@ public class Main : MonoBehaviour
         {
             unclickedCoords = GetClickedCoords(Input.mousePosition.y, Input.mousePosition.x);
             clickedPiece = null;
-
-            switch (clickedName)
+            if (clickedPieceColour == white)
             {
-                case "wPawn":
-                    if (pawnClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
-                    {
-                        board[clickedCoords.Item1, clickedCoords.Item2] = null;
-                        board[unclickedCoords.Item1, unclickedCoords.Item2] = "wPawn";
-                    }
-                    break;
-                case "wKnight":
-                    if (knightClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
-                    {
-                        board[clickedCoords.Item1, clickedCoords.Item2] = null;
-                        board[unclickedCoords.Item1, unclickedCoords.Item2] = "wKnight";
-                    }
-                    break;
-                case "wRook":
-                    if (rookClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
-                    {
-                        board[clickedCoords.Item1, clickedCoords.Item2] = null;
-                        board[unclickedCoords.Item1, unclickedCoords.Item2] = "wRook";
-                    }
-                    break;
-                case "wBishop":
-                    if (bishopClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
-                    {
-                        board[clickedCoords.Item1, clickedCoords.Item2] = null;
-                        board[unclickedCoords.Item1, unclickedCoords.Item2] = "wBishop";
-                    }
-                    break;
-                case "wQueen":
-                    if (queenClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
-                    {
-                        board[clickedCoords.Item1, clickedCoords.Item2] = null;
-                        board[unclickedCoords.Item1, unclickedCoords.Item2] = "wQueen";
-                    }
-                    break;
-                case "wKing":
-                    if (kingClass.getValidMoves(clickedCoords, "white", board).Contains(unclickedCoords))
-                    {
-                        board[clickedCoords.Item1, clickedCoords.Item2] = null;
-                        board[unclickedCoords.Item1, unclickedCoords.Item2] = "wKing";
-                    }
-                    break;
-                
+                switch (clickedPieceName)
+                {
+                    case pawn:
+                        if (pawnClass.getValidMoves(clickedCoords, white, board).Contains(unclickedCoords))
+                        {
+                            board[clickedCoords.Item1, clickedCoords.Item2] = 0;
+                            board[unclickedCoords.Item1, unclickedCoords.Item2] = (byte)(pawn | white);
+                        }
+                        break;
+                    case knight:
+                        if (knightClass.getValidMoves(clickedCoords, white, board).Contains(unclickedCoords))
+                        {
+                            board[clickedCoords.Item1, clickedCoords.Item2] = 0;
+                            board[unclickedCoords.Item1, unclickedCoords.Item2] = (byte)(knight | white);
+                        }
+                        break;
+                    case rook:
+                        if (rookClass.getValidMoves(clickedCoords, white, board).Contains(unclickedCoords))
+                        {
+                            board[clickedCoords.Item1, clickedCoords.Item2] = 0;
+                            board[unclickedCoords.Item1, unclickedCoords.Item2] = (byte)(rook | white);
+                        }
+                        break;
+                    case bishop:
+                        if (bishopClass.getValidMoves(clickedCoords, white, board).Contains(unclickedCoords))
+                        {
+                            board[clickedCoords.Item1, clickedCoords.Item2] = 0;
+                            board[unclickedCoords.Item1, unclickedCoords.Item2] = (byte)(bishop | white);
+                        }
+                        break;
+                    case queen:
+                        if (queenClass.getValidMoves(clickedCoords, white, board).Contains(unclickedCoords))
+                        {
+                            board[clickedCoords.Item1, clickedCoords.Item2] = 0;
+                            board[unclickedCoords.Item1, unclickedCoords.Item2] = (byte)(queen | white);
+                        }
+                        break;
+                    case king:
+                        if (kingClass.getValidMoves(clickedCoords, white, board).Contains(unclickedCoords))
+                        {
+                            board[clickedCoords.Item1, clickedCoords.Item2] = 0;
+                            board[unclickedCoords.Item1, unclickedCoords.Item2] = (byte)(king | white);
+                        }
+                        break;
+                    
+                }
             }
-            if (clickedName[0] == 'b')
+            if (clickedPieceColour == black)
             {
                     new Ai(this);
                     Debug.Log(evals);
@@ -201,55 +232,6 @@ public class Main : MonoBehaviour
 
     }
 
-    public void PlacePieces()
-    {   
-        DestroyObjectsWithTag("piece");
-        board = new string[8,8];
-        piecesPos = new List<(int, int)[]> {whitePawnsPos, blackPawnsPos, whiteKnightsPos, blackKnightsPos, whiteRooksPos, blackRooksPos, whiteBishopsPos, blackBishopsPos, whiteQueenPos, blackQueenPos, whiteKingPos, blackKingPos};
-
-        for (int y = 0; y < 8; y ++)
-        {
-            for (int x = 0; x < 8; x ++)
-            {
-                foreach ((int, int)[] piecePos in piecesPos)
-                {
-                    int index = piecesPos.IndexOf(piecePos);
-
-                    if (piecePos.Contains((y,x)))
-                    {
-                        board[y,x] = piecesName[index];
-                        switch (piecesName[index][1..])
-                        {
-                            case "Pawn":
-                                new Pawn(this, y, x, true, piecesName[index][0] == 'w' ? "white" : "black");
-                                break;
-
-                            case "Knight":
-                                new Knight(this, y, x, true, piecesName[index][0] == 'w' ? "white" : "black");
-                                break;
-
-                            case "Rook":
-                                new Rook(this, y, x, true, piecesName[index][0] == 'w' ? "white" : "black");
-                                break;
-
-                            case "Bishop":
-                                new Bishop(this, y, x, true, piecesName[index][0] == 'w' ? "white" : "black");
-                                break;
-                                
-                            case "Queen":
-                                new Queen(this, y, x, true, piecesName[index][0] == 'w' ? "white" : "black");
-                                break;
-
-                            case "King":
-                                new King(this, y, x, true, piecesName[index][0] == 'w' ? "white" : "black");
-                                break;
-
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     public void UpdatePieces()
     {
@@ -258,35 +240,37 @@ public class Main : MonoBehaviour
         {
             for (int x = 0; x < 8; x ++)
             {
-                if (board[y,x] != null)
+                byte piece = board[y,x];
+                byte pieceType = (byte)(piece & 0b00000111);
+                bool isBlack = (piece & black) != 0; 
+                bool isWhite = !isBlack;
+                switch(pieceType)
                 {
-                    switch(board[y,x][1..])
-                    {
-                        case "Pawn":
-                            new Pawn(this, y, x, true, board[y,x][0]  == 'w' ? "white" : "black");
-                            break;
+                    case 1:
+                        new Pawn(this, y, x, true, isWhite ? "white" : "black");
+                        break;
 
-                        case "Knight":
-                            new Knight(this, y, x, true, board[y,x][0] == 'w' ? "white" : "black");
-                            break;
+                    case 2:
+                        new Knight(this, y, x, true, isWhite ? "white" : "black");
+                        break;
 
-                        case "Rook":
-                            new Rook(this, y, x, true, board[y,x][0] == 'w' ? "white" : "black");
-                            break;
+                    case 4:
+                        new Rook(this, y, x, true, isWhite ? "white" : "black");
+                        break;
 
-                        case "Bishop":
-                            new Bishop(this, y, x, true, board[y,x][0] == 'w' ? "white" : "black");
-                            break;
-                            
-                        case "Queen":
-                            new Queen(this, y, x, true, board[y,x][0] == 'w' ? "white" : "black");
-                            break;
+                    case 3:
+                        new Bishop(this, y, x, true, isWhite ? "white" : "black");
+                        break;
+                        
+                    case 5:
+                        new Queen(this, y, x, true, isWhite ? "white" : "black");
+                        break;
 
-                        case "King":
-                            new King(this, y, x, true, board[y,x][0] == 'w' ? "white" : "black");
-                            break;
-                    }
+                    case 6:
+                        new King(this, y, x, true, isWhite ? "white" : "black");
+                        break;
                 }
+                
             }
         }
 

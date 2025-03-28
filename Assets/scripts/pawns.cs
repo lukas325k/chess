@@ -34,21 +34,21 @@ public class Pawn
     );
     }
 
-    public List<(int, int)> getValidMoves((int, int) startPos, string parentColour, string[,] board)
+    public List<(int, int)> getValidMoves((int, int) startPos, byte parentColour, byte[,] board)
     {
-        bool isAtStart = parentColour == "white" ? startPos.Item1 == 6 ? true : false : startPos.Item1 == 1 ? true : false;
-        int dir = parentColour == "white" ? -1 : 1;
+        bool isAtStart = parentColour == 8 ? startPos.Item1 == 6 ? true : false : startPos.Item1 == 1 ? true : false;
+        int dir = parentColour == 8 ? -1 : 1;
         List<(int,int)> validMoves = new List<(int, int)>();
         if (0 <= startPos.Item1 + dir && startPos.Item1 + dir < 8)
         {
             if (0 <= startPos.Item2 && startPos.Item2 < 8)
             {
 
-                if (board[startPos.Item1 + dir, startPos.Item2] == null)
+                if (board[startPos.Item1 + dir, startPos.Item2] == 0)
                 {
                     validMoves.Add((startPos.Item1 + dir, startPos.Item2));
 
-                    if (isAtStart && board[startPos.Item1 + dir*2, startPos.Item2] == null)
+                    if (isAtStart && board[startPos.Item1 + dir*2, startPos.Item2] == 0)
                     {
                         validMoves.Add((startPos.Item1 + dir*2, startPos.Item2));
                     }
@@ -58,11 +58,11 @@ public class Pawn
                 {
                     if (0 <= startPos.Item2 + i && startPos.Item2 + i <8)
                     {
-                        if (board[startPos.Item1 + dir, startPos.Item2 + i] != null)
+                        if (board[startPos.Item1 + dir, startPos.Item2 + i] != 0)
                         {
-                            if (board[startPos.Item1 + dir, startPos.Item2 + i][0] == (parentColour == "white" ? 'b' : 'w'))
+                            if ((byte)(board[startPos.Item1 + dir, startPos.Item2 + i] & parentColour) == 0)
                             {
-                                validMoves.Add((startPos.Item1 + dir, startPos.Item2 + i));
+                                validMoves.Add((startPos.Item1 + dir, startPos.Item2 + i));   
                             }
                         }
                     }

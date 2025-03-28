@@ -6,7 +6,7 @@ using System.Linq;
 
 public class Zobrist
 {
-    ulong[,,] zobristTable = new ulong[12, 8, 8];
+    ulong[,,] zobristTable = new ulong[31, 8, 8];
     List<string> pieces = new List<string>();
     Random random = new Random();
 
@@ -17,7 +17,7 @@ public class Zobrist
 
     public ulong[,,] ZobristHashing()
     {
-        for (int piece = 0; piece < 12; piece++)
+        for (int piece = 0; piece < 31; piece++)
         {
             for(int y = 0; y < 8; y ++)
             {

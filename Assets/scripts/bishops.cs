@@ -37,7 +37,7 @@ public class Bishop
     );
     }
 
-    public List<(int, int)> getValidMoves((int, int) startPos, string parentColour, string[,] board)
+    public List<(int, int)> getValidMoves((int, int) startPos, byte parentColour, byte[,] board)
     {
         List<(int,int)> validMoves = new List<(int, int)>();
         foreach ((int dx, int dy) in directions)
@@ -50,18 +50,17 @@ public class Bishop
                 if (newX < 0 || newX >= 8 || newY < 0 || newY >= 8)
                     break; 
 
-                string piece = board[newX, newY];
+                byte piece = board[newX, newY];
 
-                if (string.IsNullOrEmpty(piece))
+                if (piece == 0)
                 {
                     validMoves.Add((newX, newY));
                 }
                 else
                 {
-                    if (piece[0] == (parentColour == "white" ? 'b' : 'w'))
+                    if ((byte)(piece & parentColour) == 0)
                         validMoves.Add((newX, newY));
-                        
-
+                    
                     break; 
                 }
             }
